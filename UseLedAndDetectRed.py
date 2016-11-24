@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import RPi.GPIO as GPIO
 import time
-cap = cv2.VideoCapture(0)
+
 #Red is a unique color to detect because it has both a high and low color values (it is the upper and lower range)
 #To detect red, this code creates 2 masks and combines them
 #The resulting mask shows all parts of the video that match the red threshold in white
@@ -10,6 +10,7 @@ cap = cv2.VideoCapture(0)
 #The filtered image is also blurred to reduce noise. 
 #Also turns on the laser
 
+#TURN ON THE LASER LINE
 laserLinePin = 18
 #GPIO.BCM and GPIO.BOARD indicate different pin numbering conventions depending on the Raspberry Pi version
 GPIO.setmode(GPIO.BCM) 
@@ -20,6 +21,10 @@ GPIO.setup(laserLinePin, GPIO.OUT)
 #Turn pin on (default is 3.3V)
 GPIO.output(laserLinePin, GPIO.HIGH)
 
+#TURN ON THE VIDEO FEED
+cap = cv2.VideoCapture(0)
+if !cap.isOpened():
+    print("ERROR: Video Camera cannot be opened")
 while(1):
     # Take each frame
     _, frame = cap.read()
