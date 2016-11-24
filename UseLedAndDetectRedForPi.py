@@ -28,11 +28,12 @@ camera = PiCamera()
 camera.resolution = (640, 480)
 camera.framerate = 32
 rawCapture = PiRGBArray(camera, size=(640, 480))
- 
+ 
 # allow the camera to warmup
 time.sleep(0.1)
 
-for frame in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
+for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
+    frame = frameRaw.array
     # Convert BGR to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # lower mask (0-10) for lower threshold of red
@@ -57,8 +58,12 @@ for frame in camera.capture_continuous(rawCapture, format="bgr",use_video_port=T
     cv2.imshow('frame',frame)
     cv2.imshow('mask',mask)
     cv2.imshow('res',res)
+
+    rawCapture.truncate(0)
+    
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
         break
 cv2.destroyAllWindows()
+
 
