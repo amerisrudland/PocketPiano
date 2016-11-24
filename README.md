@@ -1,4 +1,3 @@
-
 pocketPiano
 490 Project - The Pocket Piano
 <p>
@@ -14,6 +13,11 @@ Git Stuff:
 <a href="https://git-scm.com/download/win">Install the bash here</a>
 <br>
 <a href="https://git-scm.com/docs">Some good reference guides and cheat sheets</a>
+</p>
+<p>
+Raspberry Pi Stuff
+<br>
+<a href="http://www.megaleecher.net/sites/default/files/images/raspberry-pi-rev2-gpio-pinout.jpg">Pin diagram</a>
 </p>
 <p>
 Useful Documentation/Tutorials:
