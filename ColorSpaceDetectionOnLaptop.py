@@ -1,3 +1,5 @@
+#This code is kept to demonstrate how the camera code differs between laptop cameras and the Raspberry Pi camera
+
 import cv2
 import numpy as np
 cap = cv2.VideoCapture(0)
