@@ -1,0 +1,29 @@
+Hey Ameris,
+
+As you know, for sound we are looking at playing notes from a piano, and preferable chords as well. I already have rudimentary sound working
+which you can observe in the playSound.py program. It uses the 'pygame' library which we have imported on the raspberry pi, so all pygame related
+functions that you use should also work on the Pi. It would be preferable if you get all sounds working without using any other libraries, but if
+that's not possible then it's fine.
+
+Ideally we should be able to play sounds through a function call in the style of an array. What I mean is that each note file is stored in an array.
+So the function call might be something like:
+pygame.playSound[0] #C
+pygame.playSound[1] #D
+pygame.playSound[2] #E
+etc...
+that way when we implement, we can do something like (pseudocode):
+
+for each noteRegion[i]
+if noteRegion[i] is pressed:
+	play sound[i]
+
+Maddy, Kelsey and I will have the noteRegions and 'checking if noteRegion is pressed' working by the end of the day. You will
+also need to actually find the sound files that will be played. For your own testing, the program 'ComputerKeyPressDetection.py' may help. You 
+can modify that code so you can use your keyboard presses to test the sound playing.
+
+so to summarize:
+
+1. Find sound files for all notes of an octave
+2. Find out how to store and play the sound files in python in array style (preferably using pygame library, but doesn't have to be)
+3. 'ComputerKeyPressDetection.py' and 'playSound.py' should be helpful.
+4. BONUS: If you can get multiple notes to be played at once like chords, that would be fantastic, but not necessary at this point
