@@ -5,7 +5,8 @@ import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import pygame
-
+import csv
+import pickle
 
 #Initialize pygame and load sounds (for sound playing)
 pygame.init()
@@ -37,17 +38,17 @@ time.sleep(0.1)
 def nothing(x):
     pass
 # Creating a window for later use
-cv2.namedWindow('HSV')
+#cv2.namedWindow('HSV')
 
 # Starting with 100's to prevent error while masking
-h,s,v = 100,100,100
+h,s,v = 137,58,137
 
 # Creating track bar Prev: 142,64,161
 # the first integer parameter are the starting values
 
-cv2.createTrackbar('h', 'HSV',137,179,nothing)
-cv2.createTrackbar('s', 'HSV',58,255,nothing)
-cv2.createTrackbar('v', 'HSV',137,255,nothing)
+#cv2.createTrackbar('h', 'HSV',137,179,nothing)
+#cv2.createTrackbar('s', 'HSV',58,255,nothing)
+#cv2.createTrackbar('v', 'HSV',137,255,nothing)
 
 #SETUP BLOB DETECTION
 #http://www.learnopencv.com/blob-detection-using-opencv-python-c/
@@ -83,8 +84,16 @@ params.minInertiaRatio = 0.01
 # Create a detector with the parameters
 detector = cv2.SimpleBlobDetector_create(params)
 
+#IMPORTING CALIBRATION DATA
+notes = pickle.load ( open("CalibrationData.p", "rb"))
 
-
+#creating masks from calibration data
+white = (255,255,255)
+teal = (161,232,9)
+noteRegions = []
+for idx,note in enumerate(notes):
+    noteRegions.append(np.zeros((480,640),np.uint8))
+    cv2.fillPoly(noteRegions[idx], [np.int32(note)],white)
 
 
 #IMPORTANT
@@ -94,13 +103,18 @@ detector = cv2.SimpleBlobDetector_create(params)
 #MAIN LOOP
 
 for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
+
     frame = frameRaw.array
-    # Convert BGR to HSV
+    
+    #draw note regions in frame
+    for note in notes:
+        cv2.polylines(frame, [np.int32(note)],1,teal)
+        # Convert BGR to HSV
     hsv= cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # get info from track bar and appy to result
-    h = cv2.getTrackbarPos('h','HSV')
-    s = cv2.getTrackbarPos('s','HSV')
-    v = cv2.getTrackbarPos('v','HSV')
+    #h = cv2.getTrackbarPos('h','HSV')
+    #s = cv2.getTrackbarPos('s','HSV')
+    #v = cv2.getTrackbarPos('v','HSV')
 
     #creates a mask with a lower threshold using the hsv values
     #and upper threshold of 180,255,255
@@ -114,29 +128,40 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
     blurredMask = cv2.medianBlur(mask,7)
     blurred = cv2.medianBlur(result,7)
 
-    #use detector on blurred image. the detect function can be passed a mask specifying where to look for keypoints
-    #detector.detect(image) returns an array of keypoints based on the detectors parameters
-    #so for example x=keypoints[i].pt[0] is the x coordinate of keypoint i
-    keypoints = detector.detect(blurredMask)
+    keypoints = []
+
+    #OPTIMIZE THIS LOOP
+    #print 'region size: {0}'.format(noteRegions[0].shape)
+    #print 'blurredMask size: {0}'.format(blurredMask.shape)
+    for region in noteRegions:
+        searchArea = cv2.bitwise_and(blurredMask,blurredMask,mask = region)
+        keypoints.append(detector.detect(searchArea))
+        # We want to search just the region not the whole picture to speed up
+        # keypoints.append(detector.detect(blurredMask,region)) # Maybe something like this?
 
     #Draw detected blobs as red circles
-    frameWithKeypoints = cv2.drawKeypoints(frame,keypoints,np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    #frameWithKeypoints = cv2.drawKeypoints(frame,keypoints,np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
  
 
-    #play sound if keypoints array is not empty
-    if keypoints: #keypoints vector not empty
-        pygame.mixer.music.play()
-
+    #Check if regions are detecting keypoints
+    for idx,keys in enumerate(keypoints):
+        if keys:
+            frame=cv2.drawKeypoints(frame,keys,np.array([]), teal, cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            print 'keypoint detected in region {0}'.format(idx)
+            
     #show images (i.e the frames
-    cv2.imshow("Keypoints", frameWithKeypoints)
-    cv2.imshow('de-noised',blurred)
-    #cv2.imshow('frame',frame)
+    #cv2.imshow("Keypoints", frameWithKeypoints)
+    #cv2.imshow('de-noised',blurred)
+    cv2.imshow('frame',frame)
     #cv2.imshow('mask',mask)
+    #cv2.imshow('region0',noteRegions[0])
     #cv2.imshow('result',result)
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
         break
     
+    #clear keypoints
+    keypoints[:]=[]
     rawCapture.truncate(0)
 
 cv2.destroyAllWindows()
