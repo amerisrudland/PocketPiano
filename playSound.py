@@ -4,7 +4,7 @@ import time
 
 pygame.init()
 
-pygame.mixer.music.load("Quack.wav")
+pygame.mixer.music.load("c.mp3")
 
 pygame.mixer.music.play()
 
