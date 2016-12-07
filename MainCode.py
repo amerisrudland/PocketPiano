@@ -8,10 +8,9 @@ import pygame
 import csv
 import pickle
 
-#Initialize pygame and load sounds (for sound playing)
-pygame.init()
-pygame.mixer.music.load("Quack.wav")
-
+#define colors
+white = (255,255,255)
+teal = (161,232,9)
 
 #TURN ON THE LASER
 laserLinePin = 18
@@ -38,7 +37,7 @@ time.sleep(0.1)
 def nothing(x):
     pass
 # Creating a window for later use
-#cv2.namedWindow('HSV')
+cv2.namedWindow('HSV')
 
 # Starting with 100's to prevent error while masking
 h,s,v = 137,58,137
@@ -46,9 +45,9 @@ h,s,v = 137,58,137
 # Creating track bar Prev: 142,64,161
 # the first integer parameter are the starting values
 
-#cv2.createTrackbar('h', 'HSV',137,179,nothing)
-#cv2.createTrackbar('s', 'HSV',58,255,nothing)
-#cv2.createTrackbar('v', 'HSV',137,255,nothing)
+cv2.createTrackbar('h', 'HSV',137,179,nothing)
+cv2.createTrackbar('s', 'HSV',58,255,nothing)
+cv2.createTrackbar('v', 'HSV',137,255,nothing)
 
 #SETUP BLOB DETECTION
 #http://www.learnopencv.com/blob-detection-using-opencv-python-c/
@@ -87,9 +86,38 @@ detector = cv2.SimpleBlobDetector_create(params)
 #IMPORTING CALIBRATION DATA
 notes = pickle.load ( open("CalibrationData.p", "rb"))
 
+#gets all points in notes and puts them in a single point array
+allNotePoints = []
+for note in notes:
+    for point in note:
+        allNotePoints.append(point)
+
+#Get bounding rectangle around all notes
+pianoX,pianoY,pianoWidth,pianoHeight = cv2.boundingRect(np.array(allNotePoints))
+print'piano coordinate (top left) : {0},{1}'.format(pianoX,pianoY)
+
+offsetNotes = []
+offsetNote = []
+print'old notes:{0}'.format(notes)
+for note in notes:
+    offsetNote[:] = []
+    for point in note:
+        print'original note: {0}'.format(point)
+        print'new note:{0}'.format(point[0]-pianoX,point[1]-pianoY)
+        offsetNote.append((point[0]-pianoX,point[1]-pianoY))
+    offsetNotes.append(list(offsetNote))
+
+notes = offsetNotes
+print'new notes:{0}'.format(notes)
+
+#x=allNotePoints[0][0]
+#y=allNotePoints[0][1]
+#xOffset=x-pianoX
+#yOffset=y-pianoY
+#print'original point coordinate: {0},{1}'.format(x,y)
+#print'original point coordinate: {0},{1}'.format(xOffset,yOffset)
+
 #creating masks from calibration data
-white = (255,255,255)
-teal = (161,232,9)
 noteRegions = []
 for idx,note in enumerate(notes):
     noteRegions.append(np.zeros((480,640),np.uint8))
@@ -103,8 +131,9 @@ for idx,note in enumerate(notes):
 #MAIN LOOP
 
 for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
-
     frame = frameRaw.array
+    #get region of interest using bounding rect (just the part of the frame with piano
+    frame = frame[pianoY:pianoY+pianoHeight,pianoX:pianoX+pianoWidth]
     
     #draw note regions in frame
     for note in notes:
@@ -112,9 +141,9 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
         # Convert BGR to HSV
     hsv= cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # get info from track bar and appy to result
-    #h = cv2.getTrackbarPos('h','HSV')
-    #s = cv2.getTrackbarPos('s','HSV')
-    #v = cv2.getTrackbarPos('v','HSV')
+    h = cv2.getTrackbarPos('h','HSV')
+    s = cv2.getTrackbarPos('s','HSV')
+    v = cv2.getTrackbarPos('v','HSV')
 
     #creates a mask with a lower threshold using the hsv values
     #and upper threshold of 180,255,255
@@ -133,29 +162,41 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
     #OPTIMIZE THIS LOOP
     #print 'region size: {0}'.format(noteRegions[0].shape)
     #print 'blurredMask size: {0}'.format(blurredMask.shape)
-    for region in noteRegions:
-        searchArea = cv2.bitwise_and(blurredMask,blurredMask,mask = region)
-        keypoints.append(detector.detect(searchArea))
-        # We want to search just the region not the whole picture to speed up
-        # keypoints.append(detector.detect(blurredMask,region)) # Maybe something like this?
+    #for region in noteRegions:
+    #   searchArea = cv2.bitwise_and(blurredMask,blurredMask,mask = region)
+    #   keypoints.append(detector.detect(searchArea))
+    # We want to search just the region not the whole picture to speed up
+    # keypoints.append(detector.detect(blurredMask,region)) # Maybe something like this?
+
+    #Get all keypoints in the image and print
+    keypoints = detector.detect(blurredMask)
+    frame= cv2.drawKeypoints(frame,keypoints,np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     #Draw detected blobs as red circles
     #frameWithKeypoints = cv2.drawKeypoints(frame,keypoints,np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
  
 
     #Check if regions are detecting keypoints
-    for idx,keys in enumerate(keypoints):
-        if keys:
-            frame=cv2.drawKeypoints(frame,keys,np.array([]), teal, cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            print 'keypoint detected in region {0}'.format(idx)
-            
+   # for idx,keys in enumerate(keypoints):
+   #     if keys:
+   #         frame=cv2.drawKeypoints(frame,keys,np.array([]), teal, cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+   #         print 'keypoint detected in region {0}'.format(idx)
+
+
+    #check all noteRegions for keypoints
+    #for idx,region in enumerate(notes):
+    for idx,region in enumerate(notes):
+        for key in keypoints:
+           if cv2.pointPolygonTest(np.array(region),key.pt,False)  == 1.0:
+                print 'Region {0} is triggered'.format(idx)
+    
     #show images (i.e the frames
     #cv2.imshow("Keypoints", frameWithKeypoints)
-    #cv2.imshow('de-noised',blurred)
+    cv2.imshow('de-noised',blurred)
     cv2.imshow('frame',frame)
-    #cv2.imshow('mask',mask)
-    #cv2.imshow('region0',noteRegions[0])
-    #cv2.imshow('result',result)
+    cv2.imshow('mask',mask)
+    cv2.imshow('region0',noteRegions[0])
+    cv2.imshow('result',result)
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
         break
