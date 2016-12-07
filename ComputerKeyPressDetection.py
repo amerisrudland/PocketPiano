@@ -5,6 +5,7 @@ cv2.imshow('test',image)
 
 #The code loads an image (test.png). When the user has the image selected,
 #the console will respond to keys being pressed
+#http://www.asciitable.com/
 while True:
     k = cv2.waitKey(5) & 0xFF #waits 5 miliseconds, checking for any keyboard input (returns the ascii value of the key pressed)
     if k == 27: #ascii value for ESC
