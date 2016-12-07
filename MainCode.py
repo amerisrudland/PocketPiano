@@ -151,6 +151,8 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
     lowerRange = np.array([h,s,v])
     upperRange = np.array([180,255,255]) 
     mask = cv2.inRange(hsv, lowerRange, upperRange)
+    #The blurred image to reduce noise (higher number = more blurred; Must be odd number)
+    mask = cv2.medianBlur(mask,7)
     
     # Bitwise-AND mask and original image
     if showRes == True:
