@@ -121,6 +121,29 @@ showWholeFrame=False
 showFrame=True
 showMask=False
 showFrameRate = False
+playSounds = True
+
+#Initalize the mixer
+pygame.mixer.init()
+#Set number of channels
+pygame.mixer.set_num_channels(13)
+
+#Initialize the array of notes
+notesList = []
+notesList.append(pygame.mixer.Sound("Quack.wav"))
+notesList.append(pygame.mixer.Sound("cow.wav"))
+notesList.append(pygame.mixer.Sound("hello.wav"))
+notesList.append(pygame.mixer.Sound("welcome.wav"))
+notesList.append(pygame.mixer.Sound("goodbye.wav"))
+notesList.append(pygame.mixer.Sound("bird.wav"))
+notesList.append(pygame.mixer.Sound("Quack.wav"))
+notesList.append(pygame.mixer.Sound("cow.wav"))
+notesList.append(pygame.mixer.Sound("hello.wav"))
+notesList.append(pygame.mixer.Sound("welcome.wav"))
+notesList.append(pygame.mixer.Sound("goodbye.wav"))
+notesList.append(pygame.mixer.Sound("bird.wav"))
+notesList.append(pygame.mixer.Sound("Quack.wav"))
+
 
 
 #MAIN LOOP
@@ -169,11 +192,22 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
     
     #check all noteRegions for keypoints
     #for idx,region in enumerate(notes):
-    for idx,region in enumerate(notes):
-        for key in keypoints:
-           if cv2.pointPolygonTest(np.array(region),key.pt,False)  == 1.0:
-                print 'Region {0} is triggered'.format(idx)
-    
+    if playSounds == True:
+        for idx,region in enumerate(notes):
+            for key in keypoints:
+               if cv2.pointPolygonTest(np.array(region),key.pt,False)  == 1.0:
+                   #THIS IS WHERE WE PLAY SOUNDS :D
+                    print 'Region {0} is triggered'.format(idx)
+                    #if the channel is not in use, play the sound
+                    #code is setup so each note gets it's own channel
+                    channel = pygame.mixer.Channel(idx)
+                    if not channel.get_busy():
+                        channel.play(notesList[idx])
+                    #notesList[idx].play()
+                    #wait for sound to finish playing
+                    #while pygame.mixer.music.get_busy():
+                        #time.sleep(0.1)
+                    
     #show images (i.e the frames)
     if showFrame == True:
         frame= cv2.drawKeypoints(frame,keypoints,np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -197,6 +231,8 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
         showMask = not showMask
     if k == 53: #5 key
         showFrameRate = not showFrameRate
+    if k == 54: #6 key
+        playSounds = not playSounds
     
     #clear keypoints
     keypoints[:]=[]
