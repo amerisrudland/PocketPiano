@@ -109,16 +109,22 @@ pt3 = []
 pt4 = []
 pt5 = []
 pt6 = []
+pt7 = []
+pt8 = []
+pt9 = []
 
 while keyNum <= numWhiteKeys:
+    key = []
     if keyNum == 1:
         pt0 = pts[0]
         pt1 = pts[1]
         pt2 = [pt1[0] + topWidth, pt1[1] + topHeight]
         pt3 = [pt0[0] + bottomWidth, pt0[1] + bottomHeight]
-        pt4 = pt3
-        pt5 = pt3
-        pt6 = pt3
+
+        key.append(pt0)
+        key.append(pt1)
+        key.append(pt2)
+        key.append(pt3)
 
     else:
         pt0 = pt3
@@ -126,30 +132,51 @@ while keyNum <= numWhiteKeys:
         pt2 = [pt1[0] + topWidth, pt1[1] + topHeight]
         pt3 = [pt0[0] + bottomWidth, pt0[1] + bottomHeight]
 
-        if keyNum <= 4:
+        if (pt2[0] > pt3[0]):    #midpoint is right of bottom corner
             pt4 = [pt3[0] + abs((pt2[0]-pt3[0])*2/3), pt3[1] - abs((pt2[1]-pt3[1])*2/3)]
-            pt5 = [pt4[0] - blackTW, pt4[1] - blackTH]
-        elif keyNum is not 5 and keyNum is not 8:
+        else:
             pt4 = [pt2[0] + abs((pt2[0]-pt3[0])*2/3)/2, pt3[1] - abs((pt2[1]-pt3[1])*2/3)]
 
-        if keyNum is 2 or keyNum is 3 or keyNum is 4 or keyNum is 6 or keyNum is 7:
-            pt5 = [pt4[0] - blackTW, pt4[1] - blackTH]
-            pt6 = [pt3[0]- blackTW, pt3[1] - blackTH]
+        pt5 = [pt4[0] - blackTW, pt4[1] - blackTH]
+        pt6 = [pt3[0]- blackTW, pt3[1] - blackTH]
+
+        if (pt1[0] > pt0[0]):    #midpoint is right of bottom corner
+            pt7 = [pt0[0] + abs((pt1[0]-pt0[0])*2/3), pt0[1] - abs((pt1[1]-pt0[1])*2/3)]
         else:
-            pt5 = pt3
-            pt6 = pt3
+            pt7 = [pt0[0] - abs((pt1[0]-pt0[0])*2/3), pt0[1] - abs((pt1[1]-pt0[1])*2/3)]
 
-    key = []
-    key.append(pt0)
-    key.append(pt1)
-    key.append(pt2)
-    key.append(pt3)
-    key.append(pt4)
-    key.append(pt5)
-    key.append(pt6)
+        pt8 = [pt7[0] + blackTW, pt7[1] + blackTH]
+        pt9 = [pt0[0] + blackTW, pt0[1] + blackTH]
+
+        if keyNum == 2 or keyNum == 6:
+            key.append(pt0)
+            key.append(pt1)
+            key.append(pt2)
+            key.append(pt4)
+            key.append(pt5)
+            key.append(pt6)
+
+        elif keyNum == 5 or keyNum == 8:
+            key.append(pt1)
+            key.append(pt2)
+            key.append(pt3)
+            key.append(pt9)
+            key.append(pt8)
+            key.append(pt7)
+
+        else:
+            key.append(pt1)
+            key.append(pt2)
+            key.append(pt4)
+            key.append(pt5)
+            key.append(pt6)
+            key.append(pt9)
+            key.append(pt8)
+            key.append(pt7)
+
     keys.append(key)
-
     keyNum += 1
+
 print keys
 
 showRes=True
@@ -175,6 +202,13 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_por
             y = int (y)
             cv2.line(wholeFrame,(x,y-3),(x,y+3), color,2)
             cv2.line(wholeFrame,(x-3,y),(x+3,y), color,2)
+
+        for idx in range(0, len(key)):
+            print idx
+            #if idx == len(key):
+                #cv2.line(wholeFrame, (key[idx][0], key[idx][1]), (key[0][0], key[0][1]), color, 1)
+            #else:
+                #cv2.line(wholeFrame, (key[idx][0], key[idx][1]), (key[idx+1][0], key[idx+1][1]), color, 1)
 
         #cv2.line(wholeFrame, (key[0][0], key[0][1]), (key[1][0], key[1][1]), color, 1)
         #cv2.line(wholeFrame, (key[2][0], key[2][1]), (key[3][0], key[3][1]), color, 1)
