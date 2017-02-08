@@ -30,7 +30,7 @@ result = cv2.subtract(cut_mask, cut_frame) #cv2.bitwise_and(frame,frame, mask= m
 
 #cv2.imshow('frame', frame)
 
-edges = cv2.Canny(result, 0, 70)
+edges = cv2.Canny(result, 0, 80)
 cv2.imshow('edges', edges)
 
 edge_coords = []
@@ -42,13 +42,19 @@ for y in range(0, edges.shape[0]):
 
 #USEFUL SHIT????
 
+# Create squared rectangle around edges
 pianoX,pianoY,pianoWidth,pianoHeight = cv2.boundingRect(np.array(edge_coords))
 cv2.rectangle(result, (pianoX,pianoY),(pianoX+pianoWidth,pianoY+pianoHeight), (0, 255, 0), 2)
+print "Green Rect. coordinates:"
+print pianoX,pianoY,pianoWidth,pianoHeight
 
+# Create skewed rectangle around edges
 rect = cv2.minAreaRect(np.array(edge_coords))
 box = cv2.boxPoints(rect)
 box = np.int0(box)
 cv2.drawContours(result, [box], 0, (0, 0, 255), 2)
+print "Red Rect. coordinates:"
+print box
 
 #WHAT THE SHIT IS GOING ON AFTER THIS???@??@??@?
 ##grey_result = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
@@ -65,18 +71,76 @@ cv2.drawContours(result, [box], 0, (0, 0, 255), 2)
 ##print box
 
 # USELESS SHIT....
-##edges_xfirst = []
-##edges_yfirst = []
-##
-##
-##for y in range(0, edges.shape[0]):
-##    for x in range(0, edges.shape[1]):
-##        if edges[y,x] != 0:
-##            coords_xfirst = [x, y]
-##            coords_yfirst = [y, x]
-##            edges_xfirst.append(coords_xfirst)
-##            edges_yfirst.append(coords_yfirst)
-##
+edges_xfirst = []
+edges_yfirst = []
+
+for y in range(0, edges.shape[0]):
+    for x in range(0, edges.shape[1]):
+        if edges[y,x] != 0:
+            coords_xfirst = [x, y]
+            coords_yfirst = [y, x]
+            edges_xfirst.append(coords_xfirst)
+            edges_yfirst.append(coords_yfirst)
+
+# NEW SHIT
+teal = (161,232,9)
+x_max = max(edges_xfirst)
+x_min = min(edges_xfirst)
+y_max = max(edges_yfirst)
+y_max = [y_max[1], y_max[0]]
+y_min = min(edges_yfirst)
+y_min = [y_min[1], y_min[0]]
+
+print x_max
+print x_min
+print y_max
+print y_min
+
+points = [x_max, x_min, y_max, y_min]
+
+# for x,y in box:
+    # #Draw cross at coordinates
+	# cv2.line(result,(x,y-3),(x,y+3), teal,2)
+	# cv2.line(result,(x-3,y),(x+3,y), teal,2)
+	# #label coordinates
+	# cv2.putText(result, '{0},{1}'.format(x,y),(x+30,y+20),cv2.FONT_HERSHEY_DUPLEX,0.5,(255, 255, 255),1)
+
+x = box[0][0] + ((box[0][1] - box[1][1])*2/3) #194 + ((258 - 69)*2/3)
+y = box[1][1] + ((box[1][0] - box[0][0])*2/3) #69 + ((180 - 194)*2/3)
+top_left = [x, y]
+#Draw cross at coordinates
+#cv2.line(result,(x,y-3),(x,y+3), teal,2)
+#cv2.line(result,(x-3,y),(x+3,y), teal,2)
+#label coordinates
+#cv2.putText(result, '{0},{1}'.format(x,y),(x+30,y+20),cv2.FONT_HERSHEY_DUPLEX,0.5,(255, 255, 255),1)
+
+x = box[2][0]-((box[3][1]-box[2][1])*1/3)
+y = box[2][1]+((box[3][0]-box[2][0])*2/3)
+top_right = [x, y]
+#Draw cross at coordinates
+#cv2.line(result,(x,y-3),(x,y+3), teal,2)
+#cv2.line(result,(x-3,y),(x+3,y), teal,2)
+#label coordinates
+#cv2.putText(result, '{0},{1}'.format(x,y),(x+30,y+20),cv2.FONT_HERSHEY_DUPLEX,0.5,(255, 255, 255),1)
+
+trap_coords = [box[0], top_left, top_right, box[-1]]
+
+# Display coordinates/cross-hairs of trapizoid defining piano
+for x,y in trap_coords:
+    #Draw cross at coordinates
+	cv2.line(result,(x,y-3),(x,y+3), teal,2)
+	cv2.line(result,(x-3,y),(x+3,y), teal,2)
+	#label coordinates
+	cv2.putText(result, '{0},{1}'.format(x,y),(x+30,y+20),cv2.FONT_HERSHEY_DUPLEX,0.5,(255, 255, 255),1)
+	
+# Connect the trap
+for idx in range(0, len(trap_coords)):
+	#Draw outline of key
+	if idx == len(trap_coords) - 1:
+		cv2.line(result, (int(trap_coords[idx][0]), int(trap_coords[idx][1])), (int(trap_coords[0][0]), int(trap_coords[0][1])), teal, 2)
+	else:
+		cv2.line(result, (int(trap_coords[idx][0]), int(trap_coords[idx][1])), (int(trap_coords[idx+1][0]), int(trap_coords[idx+1][1])), teal, 2)
+
 ###print edge_coords
 ##edges_xfirst.sort()
 ##edges_yfirst.sort()
@@ -114,9 +178,6 @@ cv2.drawContours(result, [box], 0, (0, 0, 255), 2)
 ##corners.append(edges_xfirst[-1])
 ##
 ##print corners
-
-
-teal = (161,232,9)
 
 #print "The first coordinate has an x of {0} and a y of {1}".format(edge_coords[0][0], edge_coords[0][1])
 
