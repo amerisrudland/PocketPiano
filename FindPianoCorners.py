@@ -12,19 +12,20 @@ import cv2
 import numpy as np
 
 TEAL = (161,232,9)
-	
+
 ####################################################################
-def translateAndCrop(image, t_x, t_y):
-	""" Translate the image by t_x and t_y,
-	then crop the frame by 3/5 in x and 1/3 in y.
-	Note that the frame cropping dimensions could
-	not be made dynamic for some reason. """
+def findCorners(key_image, white_image):
+        """ Can be used by external file to find corners of piano. """
+        # manipulate 2 images to find the keyboard and only the keyboard
+	result = findKeyboard(key_image, white_image)
 	
-	rows, cols, ch = image.shape	# Get size of original image
-	translate = np.float32([[1, 0, t_x], [0, 1, t_y]])	
-	changed_image = cv2.warpAffine(image, translate, (cols*3/5, rows/3))
-	return changed_image
-	
+	# Gather the coordinates of the points along all edges
+	edge_coords = findEdgeCoordinates(result)
+
+	# Find the coordinates of the piano from the edges 
+	piano_coords = pianoCoordinates(edge_coords)
+	return piano_coords
+
 ####################################################################
 def findKeyboard(key_image, white_image):
 	""" Read image with keyboard and image with white 
@@ -39,6 +40,18 @@ def findKeyboard(key_image, white_image):
 	cut_mask = translateAndCrop(mask, -150, -650)
 	result = cv2.subtract(cut_mask, cut_piano_keys)
 	return result
+
+####################################################################
+def translateAndCrop(image, t_x, t_y):
+	""" Translate the image by t_x and t_y,
+	then crop the frame by 3/5 in x and 1/3 in y.
+	Note that the frame cropping dimensions could
+	not be made dynamic for some reason. """
+	
+	rows, cols, ch = image.shape	# Get size of original image
+	translate = np.float32([[1, 0, t_x], [0, 1, t_y]])	
+	changed_image = cv2.warpAffine(image, translate, (cols*3/5, rows/3))
+	return changed_image
 
 ####################################################################
 def findEdgeCoordinates(image):
@@ -65,19 +78,19 @@ def pianoCoordinates(edge_coordinates):
 	box = cv2.boxPoints(rect)	# Gather coordinates of box corners
 	box = np.int0(box)
 	
-	bottom_left = [box[0][0], box[0][1]]
-	bottom_right = [box[3][0], box[3][1]]
+	bottom_left = (box[0][0], box[0][1])
+	bottom_right = (box[3][0], box[3][1])
 
 	# Use the box to calculate the upper 2 corners of the actual piano
 	# Find top left corner
 	x = box[0][0] + ((box[0][1] - box[1][1])*2/3) #194 + ((258 - 69)*2/3)
 	y = box[1][1] + ((box[1][0] - box[0][0])*2/3) #69 + ((180 - 194)*2/3)
-	top_left = [x, y]
+	top_left = (x, y)
 
 	# Find top right corner
 	x = box[2][0]-((box[3][1]-box[2][1])*1/3)
 	y = box[2][1]+((box[3][0]-box[2][0])*2/3)
-	top_right = [x, y]
+	top_right = (x, y)
 
 	piano_coords = [bottom_left, top_left, top_right, bottom_right]
 	return piano_coords

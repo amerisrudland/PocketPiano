@@ -8,9 +8,11 @@ import pygame
 import csv
 import pickle
 import math
+import FindPianoCorners
 
 def calculate_key_points(keyboard_corners):
     # Calcluate dimensions of white and black keys
+    print keyboard_corners
     bottomWidth = (keyboard_corners[3][0] - keyboard_corners[0][0])/8.0
     bottomHeight = (keyboard_corners[3][1] - keyboard_corners[0][1])/8.0
 
@@ -180,8 +182,13 @@ def main():
 
     pts = sorted(pts)   #LowerLeft, UpperLeft, UpperRight, LowerRight
 
+    print pts
+
+    new_pts = FindPianoCorners.findCorners('key_test_black.jpg', 'key_test_white2.jpg')
+    print new_pts
+
     keys = []
-    keys = calculate_key_points(pts)
+    keys = calculate_key_points(new_pts)
 
 
     showRes=True
