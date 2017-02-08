@@ -9,6 +9,7 @@ import time
 ####################################################################
 def projectImage(image_path):
 	""" Read in image and manipulate it to display correctly. """
+	
 	# Read image and shrink it
 	img = cv2.imread(image_path)
 	rows,cols,ch = img.shape
@@ -34,21 +35,27 @@ def projectImage(image_path):
 	return final
 	
 ####################################################################
+def displayImage(image_path, winName, x, y, delay):
+	""" Display an image at the given coordinates for the given duration. 
+	image_path 	= image name (string)
+	winName		= name of window image is shown in (string)
+	x			= x coordinate of window (int)
+	y 			= y coordinate of window (int)
+	delay		= time in ms to display window (int) """
+	
+	image = projectImage(image_path)
+	cv2.imshow(winName, image)
+	cv2.moveWindow(winName, x, y)
+	cv2.waitKey(delay)
+	cv2.destroyWindow(winName)
+	
+####################################################################
 def main():
 	# Project blank keyboard
-	white = projectImage("8-keys-white.jpg")
-	cv2.imshow("White", white)
-	cv2.moveWindow("White", 175, 325)
-	cv2.waitKey(1000)
-	cv2.destroyWindow("White")
+	displayImage("8-keys-white.jpg", "White", 175, 325, 1000)
 
 	# Project true keyboard
-	keys = projectImage("8-keys-black.jpg")
-	cv2.imshow("Keyboard", keys)
-	cv2.moveWindow("Keyboard", 175, 325)
-	cv2.waitKey(1000)
-		
-	cv2.destroyAllWindows()
+	displayImage("8-keys-black.jpg", "Keyboard", 175, 325, 1000)
 	
 ####################################################################
 if __name__ == "__main__":
