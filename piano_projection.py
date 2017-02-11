@@ -52,10 +52,10 @@ def displayImage(image_path, winName, x, y, delay):
 ####################################################################
 def main():
 	# Project blank keyboard
-	displayImage("8-keys-white.jpg", "White", 175, 325, 1000)
+	displayImage("images/8-keys-white.jpg", "White", 175, 325, 1000)
 
 	# Project true keyboard
-	displayImage("8-keys-black.jpg", "Keyboard", 175, 325, 1000)
+	displayImage("images/8-keys-black.jpg", "Keyboard", 175, 325, 1000)
 	
 ####################################################################
 if __name__ == "__main__":

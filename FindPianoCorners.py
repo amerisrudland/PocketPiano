@@ -118,7 +118,7 @@ def outlineShape(image, coordinates, colour, weight=2):
 def main():
 
 	# manipulate 2 images to find the keyboard and only the keyboard
-	result = findKeyboard('key_test_black.jpg', 'key_test_white2.jpg')
+	result = findKeyboard('images/key_test_black.jpg', 'images/key_test_white2.jpg')
 	
 	# Gather the coordinates of the points along all edges
 	edge_coords = findEdgeCoordinates(result)
