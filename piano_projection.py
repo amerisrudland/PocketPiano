@@ -31,7 +31,7 @@ def projectImage(image_path):
 
 	# Resize image
 	rows, cols, ch = translate.shape
-	final = cv2.resize(translate, None, fx=1.25, fy=1.25, interpolation = cv2.INTER_CUBIC)	
+	final = cv2.resize(translate, None, fx=2.0, fy=2.0, interpolation = cv2.INTER_CUBIC)	
 	return final
 	
 ####################################################################
@@ -52,10 +52,10 @@ def displayImage(image_path, winName, x, y, delay):
 ####################################################################
 def main():
 	# Project blank keyboard
-	displayImage("images/8-keys-white.jpg", "White", 175, 325, 1000)
+	displayImage("images/8-keys-white.jpg", "White", -30, 200, 0)
 
 	# Project true keyboard
-	displayImage("images/8-keys-black.jpg", "Keyboard", 175, 325, 1000)
+	displayImage("images/8-keys-black.jpg", "Keyboard", -30, 200, 0)
 	
 ####################################################################
 if __name__ == "__main__":

@@ -7,18 +7,25 @@ from picamera import PiCamera
 import pygame
 import csv
 import pickle
+import setup
+import FindPianoCorners
+import piano_projection
+
+TEAL = (161,232,9)
 
 def calculate_key_points(keyboard_corners):
     # Calcluate dimensions of white and black keys
+    correction_x = 1.0
+    correction_y = 0.5
     bottomWidth = (keyboard_corners[3][0] - keyboard_corners[0][0])/8.0
     bottomHeight = (keyboard_corners[3][1] - keyboard_corners[0][1])/8.0
 
     topWidth = (keyboard_corners[2][0] - keyboard_corners[1][0])/8.0
     topHeight = (keyboard_corners[2][1] - keyboard_corners[1][1])/8.0
 
-    blackBW = bottomWidth/4.0
+    blackBW = bottomWidth/4.0 + 2.0
     blackBH = bottomHeight/4.0
-    blackTW = topWidth/4.0
+    blackTW = topWidth/4.0 + 1.0
     blackTH = topHeight/4.0
 
 #   The key points are layed out as follows
@@ -45,26 +52,37 @@ def calculate_key_points(keyboard_corners):
         else:
             pt0 = pt3
             pt1 = pt2
+
+        if keyNum <= 3:
+            correctBW = 0.0#1.0
+            correctBH = 0.0#1.0
+            correctTW = 0.5
+            correctTH = 0.5
+        else:
+            correctBW = 0.5
+            correctBH = 0.5
+            correctTW = 0.0#-0.25
+            correctTH = 0.0#-0.25
             
-        pt2 = [pt1[0] + topWidth, pt1[1] + topHeight]
-        pt3 = [pt0[0] + bottomWidth, pt0[1] + bottomHeight]
+        pt2 = [pt1[0] + topWidth + correctTW, pt1[1] + topHeight + correctTH]
+        pt3 = [pt0[0] + bottomWidth + correctBW, pt0[1] + bottomHeight + correctBH]
 
         # Calculate corners of black key to the right
         if (pt2[0] > pt3[0]):    # Midpoint is right of bottom corner
-            pt4 = [pt3[0] + abs((pt2[0]-pt3[0])*2/3), pt3[1] - abs((pt2[1]-pt3[1])*2/3)]
+            pt4 = [pt3[0] + abs((pt2[0]-pt3[0])*2/3), pt3[1] - abs((pt2[1]-pt3[1])*4/7)]
         else:
-            pt4 = [pt2[0] + abs((pt2[0]-pt3[0])*2/3)/2, pt3[1] - abs((pt2[1]-pt3[1])*2/3)]
+            pt4 = [pt2[0] + abs((pt2[0]-pt3[0])*2/3)/2, pt3[1] - abs((pt2[1]-pt3[1])*4/7)]
 
         pt5 = [pt4[0] - blackTW, pt4[1] - blackTH]
-        pt6 = [pt3[0]- blackTW, pt3[1] - blackTH]
+        pt6 = [pt3[0]- blackBW, pt3[1] - blackBH]
 
         # Calculate corners of black key to the left
         if (pt1[0] > pt0[0]):    # Midpoint is right of bottom corner
-            pt7 = [pt0[0] + abs((pt1[0]-pt0[0])*2/3), pt0[1] - abs((pt1[1]-pt0[1])*2/3)]
+            pt7 = [pt0[0] + abs((pt1[0]-pt0[0])*2/3), pt0[1] - abs((pt1[1]-pt0[1])*4/7)]
         else:
-            pt7 = [pt0[0] - abs((pt1[0]-pt0[0])*2/3), pt0[1] - abs((pt1[1]-pt0[1])*2/3)]
+            pt7 = [pt0[0] - abs((pt1[0]-pt0[0])*2/3), pt0[1] - abs((pt1[1]-pt0[1])*4/7)]
 
-        pt8 = [pt7[0] + blackBW, pt7[1] + blackBH]
+        pt8 = [pt7[0] + blackTW, pt7[1] + blackTH]
         pt9 = [pt0[0] + blackBW, pt0[1] + blackBH]
 
         # Select points required to build key
@@ -93,7 +111,8 @@ def calculate_key_points(keyboard_corners):
             keys.append(black_key)
             black_key = []
             black_key.append(pt5)
-            black_key.append(pt6) 
+            black_key.append(pt6)
+        #key = [pt0, pt1, pt2, pt3]
 
         print keyNum
         print key
@@ -190,24 +209,26 @@ def main():
     detector = cv2.SimpleBlobDetector_create(params)
 
     # MADDY'S CHANGES START HERE...
-    #IMPORTING CALIBRATION DATA
-    #notes = pickle.load ( open("CalibrationData.p", "rb"))
-
     #gets all points in notes and puts them in a single point array
-    allNotePoints = []
-    data = pickle.load ( open("CalibrationData.p", "rb"))
+    pts = setup.mapToCameraView(camera)
 
-    pts = []
-    for corners in data:
-        for corner in corners:
-            pts.append(corner)
+    # Project the keyboard
+    keyboard = piano_projection.projectImage('images/8-keys-black.jpg')
+    cv2.imshow("keyboard", keyboard)
+    cv2.moveWindow("keyboard", -30, 200)
 
-    pts = sorted(pts)   #LowerLeft, UpperLeft, UpperRight, LowerRight
     notes = calculate_key_points(pts)
 
+    allNotePoints = []
     for note in notes:
-        for point in note:
-            allNotePoints.append(point)
+        for x, y in note:
+            coord = (x, y)
+            allNotePoints.append(coord)
+
+    orig = cv2.imread('images/testBlack2.jpg')
+    for note in notes:
+        cv2.polylines(orig, [np.int32(note)],1,teal)
+    #cv2.imshow("original++", orig)
 
     #Get bounding rectangle around all notes
     pianoX,pianoY,pianoWidth,pianoHeight = cv2.boundingRect(np.array(allNotePoints))
@@ -331,6 +352,7 @@ def main():
         if showFrame == True:
             frame= cv2.drawKeypoints(frame,keypoints,np.array([]), (0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             cv2.imshow('piano',frame)
+            cv2.moveWindow('piano', 0, 0)
         if showWholeFrame == True:
             cv2.imshow('frame',wholeFrame)
         if showMask == True:

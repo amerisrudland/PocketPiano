@@ -12,12 +12,14 @@ import cv2
 import numpy as np
 
 TEAL = (161,232,9)
+T_X = -100
+T_Y = -270
 
 ####################################################################
 def findCorners(key_image, white_image):
         """ Can be used by external file to find corners of piano. """
         # manipulate 2 images to find the keyboard and only the keyboard
-	result = findKeyboard(key_image, white_image)
+	result = findPiano(key_image, white_image)
 	
 	# Gather the coordinates of the points along all edges
 	edge_coords = findEdgeCoordinates(result)
@@ -27,7 +29,7 @@ def findCorners(key_image, white_image):
 	return piano_coords
 
 ####################################################################
-def findKeyboard(key_image, white_image):
+def findPiano(key_image, white_image):
 	""" Read image with keyboard and image with white 
 	where keyboard should be. Manipulate images to find
 	keyboard area and subtract images to display only
@@ -36,8 +38,8 @@ def findKeyboard(key_image, white_image):
 	
 	piano_keys = cv2.imread(key_image)
 	mask = cv2.imread(white_image)
-	cut_piano_keys = translateAndCrop(piano_keys, -150, -650)
-	cut_mask = translateAndCrop(mask, -150, -650)
+	cut_piano_keys = translateAndCrop(piano_keys, T_X, T_Y)
+	cut_mask = translateAndCrop(mask, T_X, T_Y)
 	result = cv2.subtract(cut_mask, cut_piano_keys)
 	return result
 
@@ -50,7 +52,7 @@ def translateAndCrop(image, t_x, t_y):
 	
 	rows, cols, ch = image.shape	# Get size of original image
 	translate = np.float32([[1, 0, t_x], [0, 1, t_y]])	
-	changed_image = cv2.warpAffine(image, translate, (cols*3/5, rows/3))
+	changed_image = cv2.warpAffine(image, translate, (cols*4/7, rows/4))
 	return changed_image
 
 ####################################################################
@@ -103,7 +105,7 @@ def markCoordinates(image, coordinates, colour, weight=2):
 		cv2.line(image, (x,y-3), (x,y+3), colour, weight)
 		cv2.line(image, (x-3,y), (x+3,y), colour, weight)
 		#label coordinates
-		cv2.putText(image, '{0},{1}'.format(x,y),(x+30,y+20),cv2.FONT_HERSHEY_DUPLEX,0.5,(255, 255, 255),1)
+		cv2.putText(image, '{0},{1}'.format(x,y),(x-40,y+15),cv2.FONT_HERSHEY_DUPLEX,0.5,(255, 255, 255),1)
 		
 ####################################################################
 def outlineShape(image, coordinates, colour, weight=2):
@@ -118,7 +120,7 @@ def outlineShape(image, coordinates, colour, weight=2):
 def main():
 
 	# manipulate 2 images to find the keyboard and only the keyboard
-	result = findKeyboard('images/key_test_black.jpg', 'images/key_test_white2.jpg')
+	result = findKeyboard('images/testBlack.jpg', 'images/testWhite.jpg')#'images/key_test_black.jpg', 'images/key_test_white2.jpg')
 	
 	# Gather the coordinates of the points along all edges
 	edge_coords = findEdgeCoordinates(result)
