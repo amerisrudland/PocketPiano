@@ -245,19 +245,19 @@ def main():
 
     #Initialize the array of notes (top to bottom of keyboard)
     notesList = []
-    notesList.append(pygame.mixer.Sound("C.wav"))
-    notesList.append(pygame.mixer.Sound("B.wav"))
-    notesList.append(pygame.mixer.Sound("A#.wav"))
-    notesList.append(pygame.mixer.Sound("A.wav"))
-    notesList.append(pygame.mixer.Sound("G#.wav"))
-    notesList.append(pygame.mixer.Sound("G.wav"))
-    notesList.append(pygame.mixer.Sound("F#.wav"))
-    notesList.append(pygame.mixer.Sound("F.wav"))
-    notesList.append(pygame.mixer.Sound("E.wav"))
-    notesList.append(pygame.mixer.Sound("D#.wav"))
-    notesList.append(pygame.mixer.Sound("D.wav"))
-    notesList.append(pygame.mixer.Sound("C#.wav"))
-    notesList.append(pygame.mixer.Sound("C.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/C4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/B4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/A#4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/A4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/G#4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/G4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/F#4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/F4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/E4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/D#4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/D4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/C#4.wav"))
+    notesList.append(pygame.mixer.Sound("pianoSounds/C4.wav"))
 
 
 
