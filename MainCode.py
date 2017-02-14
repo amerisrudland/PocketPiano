@@ -10,6 +10,7 @@ import pickle
 import setup
 import FindPianoCorners
 import piano_projection
+import HSVAutoCalib2
 
 TEAL = (161,232,9)
 
@@ -152,7 +153,6 @@ def main():
     camera = PiCamera()
     camera.resolution = (640, 480)
     camera.framerate = 32
-    rawCapture = PiRGBArray(camera, size=(640, 480))
      
     # allow the camera to warmup
     time.sleep(0.1)
@@ -164,15 +164,42 @@ def main():
     # Creating a window for later use
     cv2.namedWindow('result')
 
+    # MADDY'S CHANGES START HERE...
+    #gets all points in notes and puts them in a single point array
+    pts = setup.mapToCameraView(camera)
+
+    notes = calculate_key_points(pts)
+
+    allNotePoints = []
+    for note in notes:
+        for x, y in note:
+            coord = (x, y)
+            allNotePoints.append(coord)
+
+    orig = cv2.imread('images/testBlack2.jpg')
+    for note in notes:
+        cv2.polylines(orig, [np.int32(note)],1,teal)
+    #cv2.imshow("original++", orig)
+        
+    # Project the keyboard
+    keyboard = piano_projection.projectImage('images/8-keys-black.jpg')
+    cv2.imshow("keyboard", keyboard)
+    cv2.moveWindow("keyboard", -30, 200)
+
     # Starting with 100's to prevent error while masking
-    h,s,v = 137,58,137
+    rawCapture = PiRGBArray(camera, size=(640, 480))
+    lowerRange=HSVAutoCalib2.calib(camera,rawCapture,laserLinePin)
+
+    h=lowerRange[0]
+    s=lowerRange[1]
+    v=lowerRange[2]
 
     # Creating track bar Prev: 142,64,161
     # the first integer parameter are the starting values
 
-    cv2.createTrackbar('h', 'result',137,179,nothing)
-    cv2.createTrackbar('s', 'result',58,255,nothing)
-    cv2.createTrackbar('v', 'result',137,255,nothing)
+    cv2.createTrackbar('h', 'result',h,179,nothing)
+    cv2.createTrackbar('s', 'result',s,255,nothing)
+    cv2.createTrackbar('v', 'result',v,255,nothing)
 
     #SETUP BLOB DETECTION
     #http://www.learnopencv.com/blob-detection-using-opencv-python-c/
@@ -207,28 +234,6 @@ def main():
      
     # Create a detector with the parameters
     detector = cv2.SimpleBlobDetector_create(params)
-
-    # MADDY'S CHANGES START HERE...
-    #gets all points in notes and puts them in a single point array
-    pts = setup.mapToCameraView(camera)
-
-    # Project the keyboard
-    keyboard = piano_projection.projectImage('images/8-keys-black.jpg')
-    cv2.imshow("keyboard", keyboard)
-    cv2.moveWindow("keyboard", -30, 200)
-
-    notes = calculate_key_points(pts)
-
-    allNotePoints = []
-    for note in notes:
-        for x, y in note:
-            coord = (x, y)
-            allNotePoints.append(coord)
-
-    orig = cv2.imread('images/testBlack2.jpg')
-    for note in notes:
-        cv2.polylines(orig, [np.int32(note)],1,teal)
-    #cv2.imshow("original++", orig)
 
     #Get bounding rectangle around all notes
     pianoX,pianoY,pianoWidth,pianoHeight = cv2.boundingRect(np.array(allNotePoints))
@@ -283,7 +288,6 @@ def main():
 
 
     #MAIN LOOP
-
     for frameRaw in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
         if showFrameRate == True:
             startTime = time.time()

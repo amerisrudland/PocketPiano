@@ -12,7 +12,7 @@ def mapToCameraView(camera):
         ''' Get the coordinates of the piano's corners as seen by the camera. '''
         
         # find the keyboard
-        piano = getPiano()
+        piano = getPiano(camera)
 	
 	# Gather the coordinates of the points along all edges
 	edge_coords = FindPianoCorners.findEdgeCoordinates(piano)
@@ -31,16 +31,16 @@ def mapToCameraView(camera):
 	return piano_coords_cam
 
 ####################################################################
-def getPiano():
+def getPiano(camera):
         ''' Project 2 images and subtract them to find the keyboard. '''
         
         # Project blank image and take picture
 	piano_projection.displayImage('images/8-keys-white.jpg', 'white', -30, 200, 1000)
-	#camera.capture('images/testWhite2.jpg')
+	camera.capture('images/testWhite2.jpg')
 
 	# Project image of piano and take picture
 	piano_projection.displayImage('images/8-keys-black.jpg', 'keys', -30, 200, 1000)
-	#camera.capture('images/testBlack2.jpg')
+	camera.capture('images/testBlack2.jpg')
 
 	# manipulate 2 images to find the keyboard and only the keyboard
 	piano = FindPianoCorners.findPiano('images/testBlack2.jpg', 'images/testWhite2.jpg')
